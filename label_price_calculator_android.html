@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Label Price Calculator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827}
+.app{max-width:560px;margin:auto;min-height:100vh;padding:16px}
+.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 5px 25px rgba(0,0,0,.08)}
+h1{font-size:25px;margin:0 0 5px}
+.sub{color:#6b7280;font-size:14px;margin-bottom:20px}
+label{display:block;font-weight:700;font-size:14px;margin:14px 0 7px}
+select,input{width:100%;height:50px;border:1px solid #d1d5db;border-radius:10px;padding:0 13px;font-size:17px;background:#fff}
+input[readonly]{background:#eef2f7;color:#374151;font-weight:700}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fixed{font-size:12px;color:#6b7280;margin-top:5px}
+.results{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result{padding:15px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb}
+.result span{display:block;color:#6b7280;font-size:12px}
+.result strong{display:block;font-size:21px;margin-top:5px}
+.total{grid-column:1/-1;background:#111827;color:#fff}
+.total span{color:#d1d5db}
+.total strong{font-size:30px}
+button{width:100%;height:50px;border:0;border-radius:10px;margin-top:15px;background:#2563eb;color:white;font-size:16px;font-weight:700}
+.formula{margin-top:20px;background:#f9fafb;border-radius:10px;padding:14px;font-size:12px;line-height:1.6;color:#4b5563}
+@media(max-width:380px){.row,.results{grid-template-columns:1fr}.total{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="card">
+<h1>Label Price Calculator</h1>
+<div class="sub">Select the label type. Its price is fixed from your Excel sheet.</div>
+
+<label>Label Type</label>
+<select id="type"></select>
+
+<div class="row">
+<div>
+<label>Fixed Price</label>
+<input id="price" readonly>
+<div class="fixed">From Excel — not editable</div>
+</div>
+<div>
+<label>Fixed Unit Price</label>
+<input id="unit" readonly>
+<div class="fixed">From Excel — not editable</div>
+</div>
+</div>
+
+<div class="row">
+<div>
+<label>Width</label>
+<input id="width" type="number" inputmode="decimal" step="0.01">
+</div>
+<div>
+<label>Height</label>
+<input id="height" type="number" inputmode="decimal" step="0.01">
+</div>
+</div>
+
+<label>Quantity / Roll</label>
+<input id="qty" type="number" inputmode="numeric" step="1">
+
+<div class="results">
+<div class="result"><span>Price Per Unit</span><strong id="ppu">₹0.0000</strong></div>
+<div class="result"><span>Price Per Roll</span><strong id="roll">₹0.00</strong></div>
+<div class="result"><span>GST 18%</span><strong id="gst">₹0.00</strong></div>
+<div class="result total"><span>Final Price Including GST</span><strong id="total">₹0.00</strong></div>
+</div>
+
+<button onclick="resetFields()">Reset</button>
+
+<div class="formula">
+<strong>Formula:</strong><br>
+Price Per Unit = Width × Height ÷ Fixed Price × Fixed Unit Price<br>
+Price Per Roll = Price Per Unit × Quantity<br>
+GST = Price Per Roll × 18%<br>
+Final Price = Price Per Roll + GST
+</div>
+</div>
+</div>
+
+<script>
+const data=[{"name": "Chrome", "price": 625, "unit_price": 0.045, "width": 53, "height": 53, "qty": 4000}, {"name": "Ployster", "price": 625, "unit_price": 0.095, "width": 53, "height": 28, "qty": 4000}, {"name": "Direct Thermal", "price": 625, "unit_price": 0.055, "width": 53, "height": 28, "qty": 4000}, {"name": "Hard Board Tag", "price": 625, "unit_price": 0.04, "width": 53, "height": 25, "qty": 4000}];
+const type=document.getElementById('type');
+const price=document.getElementById('price');
+const unit=document.getElementById('unit');
+const width=document.getElementById('width');
+const height=document.getElementById('height');
+const qty=document.getElementById('qty');
+
+data.forEach((x,i)=>{
+  const o=document.createElement('option');
+  o.value=i;o.textContent=x.name;type.appendChild(o);
+});
+
+function loadType(){
+  const x=data[Number(type.value)];
+  price.value=x.price ?? '';
+  unit.value=x.unit_price ?? '';
+  width.value=x.width ?? '';
+  height.value=x.height ?? '';
+  qty.value=x.qty ?? '';
+  calculate();
+}
+
+function calculate(){
+  const B=Number(price.value)||0;
+  const C=Number(unit.value)||0;
+  const D=Number(width.value)||0;
+  const E=Number(height.value)||0;
+  const G=Number(qty.value)||0;
+
+  const F=B ? (D*E/B*C) : 0;
+  const H=F*G;
+  const GST=H*.18;
+  const total=H+GST;
+
+  document.getElementById('ppu').textContent='₹'+F.toFixed(4);
+  document.getElementById('roll').textContent='₹'+H.toFixed(2);
+  document.getElementById('gst').textContent='₹'+GST.toFixed(2);
+  document.getElementById('total').textContent='₹'+total.toFixed(2);
+}
+
+function resetFields(){loadType()}
+type.addEventListener('change',loadType);
+[width,height,qty].forEach(e=>e.addEventListener('input',calculate));
+loadType();
+</script>
+</body>
+</html>
